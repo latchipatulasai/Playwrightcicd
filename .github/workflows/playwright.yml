@@ -2,30 +2,52 @@ name: Playwright Tests
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 24
 
-      - run: npm ci
+      - name: Install Dependencies
+        run: npm ci
 
-      - run: npx playwright install --with-deps
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
 
-      - run: npx playwright test
+      - name: Run Playwright Tests
+        run: npx playwright test
 
-      - uses: actions/upload-artifact@v4
+      - name: Verify Report Exists
         if: always()
+        run: |
+          echo "Current Files:"
+          ls -la
+          echo "Playwright Report:"
+          ls -la playwright-report || echo "Report folder not found"
+
+      - name: Generate Timestamp
+        id: timestamp
+        if: always()
+        run: echo "time=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ steps.timestamp.outputs.time }}
           path: playwright-report/
+          retention-days: 30

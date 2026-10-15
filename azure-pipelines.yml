@@ -1,0 +1,28 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+
+- task: NodeTool@0
+  inputs:
+    versionSpec: '20.x'
+
+- script: |
+    npm install
+  displayName: Install Dependencies
+
+- script: |
+    npx playwright install --with-deps
+  displayName: Install Browsers
+
+- script: |
+    npx playwright test
+  displayName: Run Playwright Tests
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: JUnit
+    testResultsFiles: '**/results.xml'
